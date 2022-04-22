@@ -1,4 +1,4 @@
-use crate::interface::List;
+use crate::btree::interface::{List};
 
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Array<T> {
@@ -99,7 +99,7 @@ impl<T: Clone> List<T> for Array<T> {
 #[cfg(test)]
 mod test {
     use super::Array;
-    use chapter01::interface::List;
+    use crate::btree::interface::{List};
 
     #[test]
     fn test_arraystack() {

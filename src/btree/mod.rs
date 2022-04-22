@@ -1,6 +1,11 @@
 #![allow(clippy::many_single_char_names,clippy::explicit_counter_loop)]
-use crate::blockstore::BlockStore;
-use crate::interface::SSet;
+
+pub mod arraystack;
+pub mod blockstore;
+pub mod interface;
+
+use blockstore::{BlockStore};
+use interface::{SSet};
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 struct Node<T: Clone + PartialOrd> {
@@ -17,10 +22,10 @@ struct Node<T: Clone + PartialOrd> {
 // ri: root index
 // bs: 存放 node 的堆
 pub struct BTree<T: Clone + PartialOrd> {
-    b: usize,  // the maximum number of children of a node (must be odd 奇数)
-    B: usize,  // b div 2
-    n: usize,  // number of elements stored in the tree
-    ri: usize, // index of the root
+    b: usize,
+    B: usize,
+    n: usize,
+    ri: usize,
     bs: BlockStore<Node<T>>,
 }
 
