@@ -15,13 +15,12 @@ pub fn main() {
   }
 
   for _ in 0..n {
-      let x = rng.gen_range(0, 5 * n);
+      let x = rng.gen_range(0, 200);
       let y = btree.find(&x);
       assert_eq!(Some(x), y);
   }
-  for _ in 0..n {
-      let x = rng.gen_range(0, 5 * n);
-      let y = btree.remove(&x);
-      assert_eq!(Some(x), y);
-  }
+
+  let x = rng.gen_range(0, 200);
+  let y = btree.remove(&x);
+  assert_eq!(Some(x), y);
 }
