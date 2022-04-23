@@ -1,7 +1,7 @@
 #![allow(clippy::many_single_char_names,clippy::explicit_counter_loop)]
 
 use crate::btree::interface::{List};
-use crate::btree::arraystack::{Array as ArrayStack};
+use crate::btree::arraystack::{ArrayStack};
 
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BlockStore<T: Clone> {

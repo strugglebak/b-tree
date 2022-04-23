@@ -1,12 +1,12 @@
 use crate::btree::interface::{List};
 
 #[derive(Clone, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Array<T> {
+pub struct ArrayStack<T> {
     a: Box<[Option<T>]>,
     n: usize,
 }
 
-impl<T> Array<T> {
+impl<T> ArrayStack<T> {
     pub fn length(&self) -> usize {
         self.a.len()
     }
@@ -38,7 +38,8 @@ impl<T> Array<T> {
     }
 }
 
-impl<T: PartialEq> Array<T> {
+impl<T: PartialEq> ArrayStack<T> {
+    #[allow(dead_code)]
     pub fn contains(&self, j: T) -> bool {
         for i in 0..self.n {
             if self.a.get(i).unwrap().as_ref() == Some(&j) {
@@ -49,13 +50,13 @@ impl<T: PartialEq> Array<T> {
     }
 }
 
-impl<T: Clone> Array<T> {
+impl<T: Clone> ArrayStack<T> {
     pub fn take(&mut self, i: usize) -> Option<T> {
         self.a.get_mut(i)?.take()
     }
 }
 
-impl<T: Clone> List<T> for Array<T> {
+impl<T: Clone> List<T> for ArrayStack<T> {
     fn size(&self) -> usize {
         self.n
     }
@@ -98,12 +99,12 @@ impl<T: Clone> List<T> for Array<T> {
 
 #[cfg(test)]
 mod test {
-    use super::Array;
+    use super::ArrayStack;
     use crate::btree::interface::{List};
 
     #[test]
     fn test_arraystack() {
-        let mut array_stack: Array<char> = Array::new();
+        let mut array_stack: ArrayStack<char> = ArrayStack::new();
         assert_eq!(array_stack.size(), 0);
         for (i, elem) in "bred".chars().enumerate() {
             array_stack.add(i, elem);
@@ -127,7 +128,7 @@ mod test {
         }
         assert_eq!(array_stack.get(4), None);
         println!("\nArrayStack = {:?}\n", array_stack);
-        let mut array_stack: Array<i32> = Array::new();
+        let mut array_stack: ArrayStack<i32> = ArrayStack::new();
         let num = 10;
         for i in 0..num {
             array_stack.add(array_stack.size(), i);

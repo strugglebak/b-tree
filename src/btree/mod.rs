@@ -16,26 +16,26 @@ struct Node<T: Clone + PartialOrd> {
 
 #[allow(non_snake_case)]
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-// b: 每个 node 的 children 的最大数量
-// B: b/2
-// n: 在 BTree 中存放有多少个元素
-// ri: root index
+// max_children_amount: 每个 node 的 children 的最大数量
+// B: max_children_amount / 2
+// n: 在 BTree 中存放有多少个节点
+// root_index: 根节点索引
 // bs: 存放 node 的堆
 pub struct BTree<T: Clone + PartialOrd> {
-    b: usize,
+    max_children_amount: usize,
     B: usize,
     n: usize,
-    ri: usize,
+    root_index: usize,
     bs: BlockStore<Node<T>>,
 }
 
 impl<T: Clone + PartialOrd> Node<T> {
     fn new(t: &mut BTree<T>) -> Self {
-        let b = t.b;
+        let b = t.max_children_amount;
         let mut obj = Self {
+            id: 0,
             keys: vec![None; b].into_boxed_slice(),
             children: vec![-1i32; b + 1].into_boxed_slice(),
-            id: 0,
         };
         // 放入堆并拿到 id
         // 后续可以根据这个 id 得到其对应的 Node
@@ -141,20 +141,15 @@ impl<T: Clone + PartialOrd> Node<T> {
 }
 
 impl<T: Clone + PartialOrd> BTree<T> {
-    // b: 每个 node 的 children 的最大数量
-    // B: b/2
-    // n: 在 BTree 中存放有多少个元素
-    // ri: root index
-    // bs: 存放 node 的堆
     pub fn new(b: usize) -> Self {
         let mut tree = Self {
-            b: b | 1, // 变成奇数
+            max_children_amount: b | 1, // 变成奇数
             B: b / 2,
             n: 0,
-            ri: 0,
+            root_index: 0,
             bs: BlockStore::new(),
         };
-        tree.ri = Node::<T>::new(&mut tree).id;
+        tree.root_index = Node::<T>::new(&mut tree).id;
         tree
     }
     fn find_it(a: &[Option<T>], x: &T) -> i32 {
@@ -223,6 +218,7 @@ impl<T: Clone + PartialOrd> BTree<T> {
     }
     fn merge(&mut self, u: &mut Node<T>, i: usize, v: &mut Node<T>, w: &mut Node<T>) {
         // 确保 v 和 w 的顺序为 [..., v, w, ...]
+        // 逻辑上，合并成一个新的 v，删除 w
         assert_eq!(v.id, u.children[i] as usize);
         assert_eq!(w.id, u.children[i + 1] as usize);
 
@@ -245,21 +241,23 @@ impl<T: Clone + PartialOrd> BTree<T> {
 
 
         // 那么 u 的 key 需要 rotate
-        for j in (i + 1)..self.b {
+        for j in (i + 1)..self.max_children_amount {
             u.keys.swap(j - 1, j);
         }
-        u.keys[self.b - 1].take();
+        u.keys[self.max_children_amount - 1].take();
 
         // 那么 u 的 children 需要 rotate
-        for j in (i + 2)..(self.b + 1) {
+        for j in (i + 2)..(self.max_children_amount + 1) {
             u.children.swap(j - 1, j);
         }
-        u.children[self.b] = -1;
+        u.children[self.max_children_amount] = -1;
 
 
-        // 更新 u v w 的节点信息
+        // 更新 u v 的节点信息
         self.bs.write_block(u.id, u.clone());
         self.bs.write_block(v.id, v.clone());
+
+        // 删除 w
         self.bs.free_block(w.id);
     }
 
@@ -341,20 +339,21 @@ impl<T: Clone + PartialOrd> BTree<T> {
         // keys 都变成 None
         // children 都是 -1
         // 需要把后面的数据 rotate 到前面来
-        for i in 0..(self.b - shift) {
+        for i in 0..(self.max_children_amount - shift) {
             v.keys.swap(i, shift + i);
         }
         // 然后为了安全起见，把剩下的再次设为 None
-        for key in v.keys[(sv - shift)..self.b].iter_mut() {
+        for key in v.keys[(sv - shift)..self.max_children_amount].iter_mut() {
             key.take();
         }
 
         // children 的逻辑也是一样
-        for i in 0..(self.b - shift + 1) {
+        // 需要把后面的数据 rotate 到前面来
+        for i in 0..(self.max_children_amount - shift + 1) {
             v.children.swap(i, shift + i);
         }
         // 然后为了安全起见，把剩下的再次设为 -1
-        for chd in v.children[(sv - shift + 1)..(self.b + 1)].iter_mut() {
+        for chd in v.children[(sv - shift + 1)..(self.max_children_amount + 1)].iter_mut() {
             *chd = -1;
         }
 
@@ -381,9 +380,6 @@ impl<T: Clone + PartialOrd> BTree<T> {
                         // i 是 0，即为 w 所在位置
                         // 注意这里参数是反的
                         self.merge(u, i, w, v);
-
-                        u.children[i] = w.id as i32;
-                        self.bs.write_block(u.id, u.clone());
                     }
                 }
             }
@@ -510,21 +506,21 @@ where
         self.n
     }
     fn add(&mut self, x: T) -> bool {
-        match self.add_recursive(x, self.ri) {
+        match self.add_recursive(x, self.root_index) {
             Ok(w) => {
                 if let Some(mut w) = w {
                     let x = w.remove(0);
                     let mut newroot = Node::new(self);
 
                     newroot.keys[0] = x;
-                    newroot.children[0] = self.ri as i32;
+                    newroot.children[0] = self.root_index as i32;
                     newroot.children[1] = w.id as i32;
 
                     // 更新 root 节点 index
-                    self.ri = newroot.id;
+                    self.root_index = newroot.id;
 
                     self.bs.write_block(w.id, w);
-                    self.bs.write_block(self.ri, newroot);
+                    self.bs.write_block(self.root_index, newroot);
                 }
                 self.n += 1;
                 true
@@ -533,16 +529,16 @@ where
         }
     }
     fn remove(&mut self, x: &T) -> Option<T> {
-        match self.remove_recursive(x, self.ri as i32) {
+        match self.remove_recursive(x, self.root_index as i32) {
             Some(y) => {
                 self.n -= 1;
-                let r = self.bs.read_block(self.ri);
+                let r = self.bs.read_block(self.root_index);
                 if let Some(r) = r {
                     if r.size() == 0 && self.n > 0 {
                         // 删除成功
 
                         // 更新 root 节点 index
-                        self.ri = r.children[0] as usize;
+                        self.root_index = r.children[0] as usize;
                     }
                 }
                 Some(y)
@@ -552,7 +548,7 @@ where
     }
     fn find(&self, x: &T) -> Option<T> {
         let mut z = None;
-        let mut ui = self.ri as i32;
+        let mut ui = self.root_index as i32;
         while ui >= 0 {
             // 从根节点开始找
             let u = self.bs.read_block(ui as usize)?;
