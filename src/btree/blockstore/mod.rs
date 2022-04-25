@@ -20,19 +20,19 @@ impl<T: Clone> BlockStore<T> {
         if self.free.size() > 0 {
             self.free.remove(self.free.size() - 1).unwrap()
         } else {
-            let i = self.blocks.size();
-            self.blocks.add(i, block);
-            i
+            let id = self.blocks.size();
+            self.blocks.add(id, block);
+            id
         }
     }
-    pub fn free_block(&mut self, i: usize) {
-        self.blocks.take(i);
-        self.free.add(self.free.size(), i);
+    pub fn free_block(&mut self, id: usize) {
+        self.blocks.take(id);
+        self.free.add(self.free.size(), id);
     }
-    pub fn read_block(&self, i: usize) -> Option<T> {
-        self.blocks.get(i)
+    pub fn read_block(&self, id: usize) -> Option<T> {
+        self.blocks.get(id)
     }
-    pub fn write_block(&mut self, i: usize, block: T) {
-        self.blocks.set(i, block);
+    pub fn write_block(&mut self, id: usize, block: T) {
+        self.blocks.set(id, block);
     }
 }
