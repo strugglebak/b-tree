@@ -16,7 +16,7 @@ impl<T: Clone> BlockStore<T> {
             free: ArrayStack::new(),
         }
     }
-    pub fn place_block(&mut self, block: T) -> usize {
+    pub fn new_block(&mut self, block: T) -> usize {
         if self.free.size() > 0 {
             self.free.remove(self.free.size() - 1).unwrap()
         } else {

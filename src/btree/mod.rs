@@ -40,7 +40,7 @@ impl<T: Clone + PartialOrd> Node<T> {
         // 放入堆并拿到 id
         // 后续可以根据这个 id 得到其对应的 Node
         // 每次调用这个 new，id 会自动增长
-        obj.id = t.bs.place_block(obj.clone());
+        obj.id = t.bs.new_block(obj.clone());
         obj
     }
     fn is_leaf(&self) -> bool {
