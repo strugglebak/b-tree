@@ -5,7 +5,7 @@ pub mod blockstore;
 pub mod interface;
 
 use blockstore::{BlockStore};
-use interface::{SSet};
+use interface::{SortedSet};
 
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 struct Node<T: Clone + PartialOrd> {
@@ -498,7 +498,7 @@ impl<T: Clone + PartialOrd> BTree<T> {
     }
 }
 
-impl<T> SSet<T> for BTree<T>
+impl<T> SortedSet<T> for BTree<T>
 where
     T: Clone + PartialOrd,
 {

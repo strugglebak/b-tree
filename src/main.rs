@@ -2,7 +2,7 @@ mod btree;
 
 use rand::{thread_rng, Rng};
 use btree::BTree;
-use btree::interface::{SSet};
+use btree::interface::{SortedSet};
 
 pub fn main() {
   let mut rng = thread_rng();
