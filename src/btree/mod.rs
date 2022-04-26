@@ -510,17 +510,17 @@ where
             Ok(w) => {
                 if let Some(mut w) = w {
                     let x = w.remove(0);
-                    let mut newroot = Node::new(self);
+                    let mut new_root = Node::new(self);
 
-                    newroot.keys[0] = x;
-                    newroot.children[0] = self.root_index as i32;
-                    newroot.children[1] = w.id as i32;
+                    new_root.keys[0] = x;
+                    new_root.children[0] = self.root_index as i32;
+                    new_root.children[1] = w.id as i32;
 
                     // 更新 root 节点 index
-                    self.root_index = newroot.id;
+                    self.root_index = new_root.id;
 
                     self.bs.write_block(w.id, w);
-                    self.bs.write_block(self.root_index, newroot);
+                    self.bs.write_block(self.root_index, new_root);
                 }
                 self.n += 1;
                 true
