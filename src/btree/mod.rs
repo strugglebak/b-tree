@@ -18,7 +18,7 @@ struct Node<T: Clone + PartialOrd> {
 #[derive(Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
 // max_children_amount: 每个 node 的 children 的最大数量
 // B: max_children_amount / 2
-// n: 在 BTree 中存放有多少个节点
+// n: 在 BTree 中存放有多少个 key
 // root_index: 根节点索引
 // bs: 存放 node 的store
 pub struct BTree<T: Clone + PartialOrd> {
