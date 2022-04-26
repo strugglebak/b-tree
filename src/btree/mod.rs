@@ -20,7 +20,7 @@ struct Node<T: Clone + PartialOrd> {
 // B: max_children_amount / 2
 // n: 在 BTree 中存放有多少个 key
 // root_index: 根节点索引
-// bs: 存放 node 的store
+// bs: 存放 node 的 store
 pub struct BTree<T: Clone + PartialOrd> {
     max_children_amount: usize,
     B: usize,
@@ -37,7 +37,7 @@ impl<T: Clone + PartialOrd> Node<T> {
             keys: vec![None; b].into_boxed_slice(),
             children: vec![-1i32; b + 1].into_boxed_slice(),
         };
-        // 放入store并拿到 id
+        // 放入 store 并拿到 id
         // 后续可以根据这个 id 得到其对应的 Node
         // 每次调用这个 new，id 会自动增长
         obj.id = t.bs.new_block(obj.clone());
@@ -132,7 +132,7 @@ impl<T: Clone + PartialOrd> Node<T> {
             *chd = -1;
         }
 
-        // 将数据写入store
+        // 将数据写入 store
         t.bs.write_block(self.id, self.clone());
 
         // 返回这个被复制过的 Node 节点
@@ -171,7 +171,7 @@ impl<T: Clone + PartialOrd> BTree<T> {
         lo as i32
     }
     fn add_recursive(&mut self, mut x: T, ui: usize) -> Result<Option<Node<T>>, ()> {
-        // 从store中的 ui 位置读取 u 节点
+        // 从 store 中的 ui 位置读取 u 节点
         if let Some(mut u) = self.bs.read_block(ui) {
             // 在 u 里面的 keys 中，查找 x 应该要放入到 u.keys 中的位置
             let i = Self::find_it(&u.keys, &x);
